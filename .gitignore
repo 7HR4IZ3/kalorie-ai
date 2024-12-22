@@ -56,3 +56,8 @@ profile-*
 profile*
 *clinic*
 *flamegraph*
+
+# local config files
+.vercel
+.env
+.editorconfig

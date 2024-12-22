@@ -1,5 +1,6 @@
 'use strict'
 
+import "dotenv/config";
 import { join } from 'node:path'
 import AutoLoad from '@fastify/autoload'
 
@@ -8,6 +9,10 @@ const options = {}
 
 export default async function (fastify, opts) {
   // Place here your custom code!
+
+  // fastify.register(import('fastify-cors'))
+  // fastify.register(import('fastify-helmet'))
+  // fastify.register(import('fastify-rate-limit'))
 
   // Do not touch the following lines
 
