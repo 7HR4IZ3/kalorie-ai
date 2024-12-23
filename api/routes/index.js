@@ -5,9 +5,6 @@ export default async function (app, opts) {
     return { root: true }
   });
 
-  app.register(import("./auth.js"), { prefix: "/auth" });
-  app.register(import("./users.js"), { prefix: "/users" });
-
   app.post('/analyze', async function (request, reply) {
     return "analyze page"
   });

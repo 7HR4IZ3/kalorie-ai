@@ -1,39 +1,20 @@
 "use strict";
 
 import "dotenv/config";
-import { join } from "node:path";
-import AutoLoad from "@fastify/autoload";
-
-import { readdir } from "fs/promises";
 
 // Pass --options via CLI arguments in command to enable these options.
 const options = {};
 
-export default async function (fastify, opts) {
+export default async function (app, opts) {
   // Place here your custom code!
 
-  // fastify.register(import('fastify-cors'))
-  // fastify.register(import('fastify-helmet'))
-  // fastify.register(import('fastify-rate-limit'))
+  app.register(import('./api/plugins/sensible.js'));
+  app.register(import('./api/plugins/swagger.js'));
+  app.register(import('./api/plugins/support.js'));
 
-  console.log(await readdir(join(import.meta.dirname, "api")));
-
-  // Do not touch the following lines
-
-  // This loads all plugins defined in plugins
-  // those should be support plugins that are reused
-  // through your application
-  fastify.register(AutoLoad, {
-    dir: join(import.meta.dirname, "api", "plugins"),
-    options: Object.assign({}, opts),
-  });
-
-  // This loads all plugins defined in routes
-  // define your routes in one of these
-  fastify.register(AutoLoad, {
-    dir: join(import.meta.dirname, "api", "routes"),
-    options: Object.assign({}, opts),
-  });
+  app.register(import('./api/routes/index.js'));
+  app.register(import("./auth.js"), { prefix: "/auth" });
+  app.register(import("./users.js"), { prefix: "/users" });
 }
 
 export { options };
