@@ -13,8 +13,8 @@ export default async function (app, opts) {
   app.register(import('./api/plugins/support.js'));
 
   app.register(import('./api/routes/index.js'));
-  app.register(import("./auth.js"), { prefix: "/auth" });
-  app.register(import("./users.js"), { prefix: "/users" });
+  app.register(import("./api/routes/auth.js"), { prefix: "/auth" });
+  app.register(import("./api/routes/users.js"), { prefix: "/users" });
 }
 
 export { options };
