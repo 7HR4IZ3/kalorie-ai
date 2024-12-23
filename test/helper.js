@@ -5,7 +5,7 @@
 
 import { build as buildApplication } from 'fastify-cli/helper'
 import { join } from 'node:path'
-const AppPath = join(__dirname, '..', 'app.js')
+const AppPath = join(__dirname, '..', 'setup.js')
 
 // Fill in this config with all the configurations
 // needed for testing the application
