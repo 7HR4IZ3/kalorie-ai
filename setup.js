@@ -24,14 +24,14 @@ export default async function (fastify, opts) {
   // those should be support plugins that are reused
   // through your application
   fastify.register(AutoLoad, {
-    dir: join(import.meta.dirname, "plugins"),
+    dir: join(import.meta.dirname, "api", "plugins"),
     options: Object.assign({}, opts),
   });
 
   // This loads all plugins defined in routes
   // define your routes in one of these
   fastify.register(AutoLoad, {
-    dir: join(import.meta.dirname, "routes"),
+    dir: join(import.meta.dirname, "api", "routes"),
     options: Object.assign({}, opts),
   });
 }
