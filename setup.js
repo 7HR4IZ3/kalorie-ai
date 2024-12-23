@@ -16,7 +16,7 @@ export default async function (fastify, opts) {
   // fastify.register(import('fastify-helmet'))
   // fastify.register(import('fastify-rate-limit'))
 
-  console.log(await readdir(join(import.meta.dirname)));
+  console.log(await readdir(join(import.meta.dirname, "api")));
 
   // Do not touch the following lines
 
