@@ -683,9 +683,9 @@ export default fp<SwaggerPluginOptions>(async function (fastify, opts) {
     },
   })
 
-  // UserResponse Schema
+  // UserDetails Schema
   fastify.addSchema({
-    $id: "UserResponse",
+    $id: "UserDetails",
     type: "object",
     properties: {
       id: {
@@ -704,6 +704,69 @@ export default fp<SwaggerPluginOptions>(async function (fastify, opts) {
       updatedAt: {
         type: "string",
         format: "date-time",
+      },
+      gender: {
+        type: "string",
+        enum: ["male", "female", "other"],
+      },
+      workout_periods: {
+        type: "string",
+        enum: ["0-2", "3-5", "6+"],
+      },
+      tried_other_tracking_apps: {
+        type: "string",
+        enum: ["yes", "no"],
+      },
+      height: {
+        type: "number",
+      },
+      weight: {
+        type: "number",
+      },
+      age: {
+        type: "string",
+        format: "date",
+      },
+      goal: {
+        type: "string",
+        enum: ["lose_weight", "gain_weight", "mantain"],
+      },
+      desited_weight: {
+        type: "number",
+      },
+      goal_speed: {
+        type: "number",
+        minimum: 0.1,
+        maximum: 1.5,
+      },
+      current_limitation: {
+        type: "array",
+        items: {
+          type: "string",
+          enum: [
+            "consistency",
+            "eating_habit",
+            "support",
+            "busy",
+            "meal_inspiraton",
+          ],
+        },
+      },
+      following_a_diet: {
+        type: "string",
+        enum: ["classic", "pescetarian", "vegan", "vegitarian"],
+      },
+      accomplishment_goal: {
+        type: "array",
+        items: {
+          type: "string",
+          enum: [
+            "eat_healthier",
+            "boost_mood",
+            "stay_motivated",
+            "feel_better",
+          ],
+        },
       },
     },
   });
@@ -725,9 +788,9 @@ export default fp<SwaggerPluginOptions>(async function (fastify, opts) {
     },
   });
 
-  // FoodAnalysis Schema
+  // FoodAnalysisResult Schema
   fastify.addSchema({
-    $id: "FoodAnalysis",
+    $id: "FoodAnalysisResult",
     type: "object",
     properties: {
       foodName: {
@@ -751,11 +814,40 @@ export default fp<SwaggerPluginOptions>(async function (fastify, opts) {
           fiber: {
             type: "number",
           },
+          sugars: {
+            type: "number",
+          }
         },
       },
       confidence: {
         type: "number",
         description: "Confidence score of the analysis (0-1)",
+      },
+      ingredients: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            name: {
+              type: "string",
+            },
+            amount: {
+              type: "number",
+            },
+            unit: {
+              type: "string",
+            },
+          },
+        }
+      },
+      health_score: {
+        type: "number",
+        description: "Health score of the food (0-1)",
+      },
+      quantity: {
+        type: "number",
+        description: "Quantity of the food",
+        default: 1,
       },
     },
   });
