@@ -1,20 +1,24 @@
-"use strict";
-
 import fp from "fastify-plugin";
+
+export interface SwaggerPluginOptions {
+  // Specify Swagger plugin options here
+}
 
 const SWAGGER_OBJECT = {
   servers: [
-    {
-      url: "https://api.example.com/v1",
-    },
+    { url: "http://localhost:3000/" },
+    { url: "https://kalorie-ai-six.vercel.app/" },
   ],
   paths: {
     "/auth/register": {
       post: {
         tags: ["Authentication"],
         summary: "Register a new user",
+        description: "Register a new user",
+        operationId: "registerUser",
         requestBody: {
           required: true,
+          description: "User Registration",
           content: {
             "application/json": {
               schema: {
@@ -360,17 +364,85 @@ const SWAGGER_OBJECT = {
     schemas: {
       UserRegistration: {
         type: "object",
-        required: ["email", "password", "name"],
+        required: [
+          "gender",
+          "workout_periods",
+          "tried_other_tracking_apps",
+          "height",
+          "weight",
+          "age",
+          "goal",
+          "desited_weight",
+          "goal_speed",
+          "current_limitation",
+          "following_a_diet",
+          "accomplishment_goal",
+        ],
         properties: {
-          email: {
+          gender: {
             type: "string",
-            format: "email",
+            enum: ["male", "female", "other"],
           },
-          password: {
+          workout_periods: {
             type: "string",
-            minLength: 8,
+            enum: ["0-2", "3-5", "6+"],
           },
-          name: {
+          tried_other_tracking_apps: {
+            type: "string",
+            enum: ["yes", "no"],
+          },
+          height: {
+            type: "number",
+          },
+          weight: {
+            type: "number",
+          },
+          age: {
+            type: "string",
+            format: "date",
+          },
+          goal: {
+            type: "string",
+            enum: ["lose_weight", "gain_weight", "mantain"],
+          },
+          desited_weight: {
+            type: "number",
+          },
+          goal_speed: {
+            type: "number",
+            minimum: 0.1,
+            maximum: 1.5,
+          },
+          current_limitation: {
+            type: "array",
+            items: {
+              type: "string",
+              enum: [
+                "consistency",
+                "eating_habit",
+                "support",
+                "busy",
+                "meal_inspiraton",
+              ],
+            },
+          },
+          following_a_diet: {
+            type: "string",
+            enum: ["classic", "pescetarian", "vegan", "vegitarian"],
+          },
+          accomplishment_goal: {
+            type: "array",
+            items: {
+              type: "string",
+              enum: [
+                "eat_healthier",
+                "boost_mood",
+                "stay_motivated",
+                "feel_better",
+              ],
+            },
+          },
+          referal_code: {
             type: "string",
           },
         },
@@ -488,17 +560,208 @@ const SWAGGER_OBJECT = {
       },
     },
   },
-}
+};
 
-/**
- * This plugins adds support for swagger documentation
- *
- * @see https://github.com/fastify/fastify-swagger
- */
-export default fp(async function (fastify, opts) {
+
+export default fp<SwaggerPluginOptions>(async function (fastify, opts) {
+  // UserRegistration Schema
+  fastify.addSchema({
+    $id: "UserRegistration",
+    type: "object",
+    required: [
+      "gender",
+      "workout_periods",
+      "tried_other_tracking_apps",
+      "height",
+      "weight",
+      "age",
+      "goal",
+      "desited_weight",
+      "goal_speed",
+      "current_limitation",
+      "following_a_diet",
+      "accomplishment_goal",
+    ],
+    properties: {
+      gender: {
+        type: "string",
+        enum: ["male", "female", "other"],
+      },
+      workout_periods: {
+        type: "string",
+        enum: ["0-2", "3-5", "6+"],
+      },
+      tried_other_tracking_apps: {
+        type: "string",
+        enum: ["yes", "no"],
+      },
+      height: {
+        type: "number",
+      },
+      weight: {
+        type: "number",
+      },
+      age: {
+        type: "string",
+        format: "date",
+      },
+      goal: {
+        type: "string",
+        enum: ["lose_weight", "gain_weight", "mantain"],
+      },
+      desited_weight: {
+        type: "number",
+      },
+      goal_speed: {
+        type: "number",
+        minimum: 0.1,
+        maximum: 1.5,
+      },
+      current_limitation: {
+        type: "array",
+        items: {
+          type: "string",
+          enum: [
+            "consistency",
+            "eating_habit",
+            "support",
+            "busy",
+            "meal_inspiraton",
+          ],
+        },
+      },
+      following_a_diet: {
+        type: "string",
+        enum: ["classic", "pescetarian", "vegan", "vegitarian"],
+      },
+      accomplishment_goal: {
+        type: "array",
+        items: {
+          type: "string",
+          enum: [
+            "eat_healthier",
+            "boost_mood",
+            "stay_motivated",
+            "feel_better",
+          ],
+        },
+      },
+      referal_code: {
+        type: "string",
+      },
+    },
+  });
+
+  // UserLogin Schema
+  fastify.addSchema({
+    $id: "UserLogin",
+    type: "object",
+    required: ["email", "password"],
+    properties: {
+      email: {
+        type: "string",
+        format: "email",
+      },
+      password: {
+        type: "string",
+      },
+    },
+  });
+
+  // UserUpdate Schema
+  fastify.addSchema({
+    $id: "UserUpdate",
+    type: "object",
+    properties: {
+      name: {
+        type: "string",
+      },
+      email: {
+        type: "string",
+        format: "email",
+      },
+    },
+  })
+
+  // UserResponse Schema
+  fastify.addSchema({
+    $id: "UserResponse",
+    type: "object",
+    properties: {
+      id: {
+        type: "string",
+      },
+      email: {
+        type: "string",
+      },
+      name: {
+        type: "string",
+      },
+      createdAt: {
+        type: "string",
+        format: "date-time",
+      },
+      updatedAt: {
+        type: "string",
+        format: "date-time",
+      },
+    },
+  });
+
+  // AuthResponse Schema
+  fastify.addSchema({
+    $id: "AuthResponse",
+    type: "object",
+    properties: {
+      accessToken: {
+        type: "string",
+      },
+      refreshToken: {
+        type: "string",
+      },
+      user: {
+        $ref: "UserResponse",
+      },
+    },
+  });
+
+  // FoodAnalysis Schema
+  fastify.addSchema({
+    $id: "FoodAnalysis",
+    type: "object",
+    properties: {
+      foodName: {
+        type: "string",
+      },
+      calories: {
+        type: "number",
+      },
+      nutrients: {
+        type: "object",
+        properties: {
+          protein: {
+            type: "number",
+          },
+          carbohydrates: {
+            type: "number",
+          },
+          fat: {
+            type: "number",
+          },
+          fiber: {
+            type: "number",
+          },
+        },
+      },
+      confidence: {
+        type: "number",
+        description: "Confidence score of the analysis (0-1)",
+      },
+    },
+  });
+
   fastify.register(import("@fastify/swagger"), {
-    routePrefix: "/api-docs",
-    swagger: {
+    openapi: {
       info: {
         title: "KalorieAI",
         description: "This is a sample Fastify application",
@@ -507,34 +770,19 @@ export default fp(async function (fastify, opts) {
       externalDocs: {
         url: "https://fastify.dev",
         description: "Fastify documentation",
-      },
-      host: "localhost",
-      schemes: ["http"],
-      consumes: ["application/json"],
-      produces: ["application/json"],
+      }
     },
   });
 
   fastify.register(import("@fastify/swagger-ui"), {
     routePrefix: "/documentation",
-    uiConfig: {
-      docExpansion: "full",
-      deepLinking: false,
-    },
-    uiHooks: {
-      onRequest: function (request, reply, next) {
-        next();
-      },
-      preHandler: function (request, reply, next) {
-        next();
-      },
-    },
-    staticCSP: true,
-    transformStaticCSP: (header) => header,
     transformSpecification: (swaggerObject, request, reply) => {
+      // @ts-ignore
+      delete swaggerObject["swagger"];
+
       return {
         ...swaggerObject,
-        ...SWAGGER_OBJECT
+        servers: SWAGGER_OBJECT.servers,
       };
     },
     transformSpecificationClone: true,
