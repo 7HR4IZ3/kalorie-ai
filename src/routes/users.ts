@@ -22,7 +22,7 @@ const users: FastifyPluginAsync = async function (app: AppInstance, opts) {
             content: {
               "application/json": {
                 schema: {
-                  $ref: "UserResponse#",
+                  $ref: "UserDetails#",
                 },
               },
             },
@@ -76,7 +76,7 @@ const users: FastifyPluginAsync = async function (app: AppInstance, opts) {
             content: {
               "application/json": {
                 schema: {
-                  $ref: "UserResponse#",
+                  $ref: "UserDetails#",
                 },
               },
             },

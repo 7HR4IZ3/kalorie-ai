@@ -69,7 +69,7 @@ const auth: FastifyPluginAsync = async function (app, opts) {
             content: {
               "application/json": {
                 schema: {
-                  $ref: "UserResponse#",
+                  $ref: "UserDetails#",
                 },
               },
             },
