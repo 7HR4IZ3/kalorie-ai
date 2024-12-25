@@ -783,7 +783,7 @@ export default fp<SwaggerPluginOptions>(async function (fastify, opts) {
         type: "string",
       },
       user: {
-        $ref: "UserResponse",
+        $ref: "UserResponse#",
       },
     },
   });
