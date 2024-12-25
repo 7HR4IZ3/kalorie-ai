@@ -63,6 +63,7 @@ test/types/index.js
 
 # compiled app
 dist
+build
 
 # local config files
 .vercel
