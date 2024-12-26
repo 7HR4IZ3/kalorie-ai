@@ -8,7 +8,7 @@ const index: FastifyPluginAsync = async function (app, opts) {
     {
       schema: {
         tags: ["Server Status"],
-        description: "Check if the server is alive",
+        summary: "Check if the server is alive",
         response: {
           200: {
             type: "object",

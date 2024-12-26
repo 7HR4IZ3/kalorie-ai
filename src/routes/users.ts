@@ -8,7 +8,7 @@ const users: FastifyPluginAsync = async function (app: AppInstance, opts) {
       schema: {
         tags: ["User Management"],
         summary: "Get user details",
-        querystring: {
+        params: {
           type: "object",
           properties: {
             userId: {
@@ -16,7 +16,7 @@ const users: FastifyPluginAsync = async function (app: AppInstance, opts) {
             },
           },
         },
-        responses: {
+        response: {
           200: {
             description: "User details retrieved successfully",
             content: {
@@ -27,7 +27,7 @@ const users: FastifyPluginAsync = async function (app: AppInstance, opts) {
               },
             },
           },
-          404: {
+          401: {
             description: "User not found",
             content: {
               "application/json": {
@@ -52,7 +52,7 @@ const users: FastifyPluginAsync = async function (app: AppInstance, opts) {
       schema: {
         tags: ["User Management"],
         summary: "Update user details",
-        querystring: {
+        params: {
           type: "object",
           properties: {
             userId: {
@@ -65,12 +65,12 @@ const users: FastifyPluginAsync = async function (app: AppInstance, opts) {
           content: {
             "application/json": {
               schema: {
-                $ref: "UserUpdate#",
+                $ref: "UserDetails#",
               },
             },
           },
         },
-        responses: {
+        response: {
           200: {
             description: "User updated successfully",
             content: {
@@ -105,7 +105,7 @@ const users: FastifyPluginAsync = async function (app: AppInstance, opts) {
       schema: {
         tags: ["User Management"],
         summary: "Delete user",
-        querystring: {
+        params: {
           type: "object",
           properties: {
             userId: {
@@ -113,9 +113,19 @@ const users: FastifyPluginAsync = async function (app: AppInstance, opts) {
             },
           },
         },
-        responses: {
+        response: {
           204: {
             description: "User deleted successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" },
+                  },
+                },
+              },
+            }
           },
           404: {
             description: "User not found",

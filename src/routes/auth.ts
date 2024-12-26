@@ -41,7 +41,7 @@ const auth: FastifyPluginAsync = async function (app, opts) {
         },
       },
     },
-    async function (request, reply) {
+    async function (request) {
       return "login page";
     }
   );
@@ -98,23 +98,7 @@ const auth: FastifyPluginAsync = async function (app, opts) {
       schema: {
         tags: ["Authentication"],
         summary: "Authenticate with Google",
-        body: {
-          required: true,
-          content: {
-            "application/json": {
-              schema: {
-                type: "object",
-                properties: {
-                  idToken: {
-                    type: "string",
-                    description: "Google OAuth ID token",
-                  },
-                },
-              },
-            },
-          },
-        },
-        responses: {
+        response: {
           200: {
             description: "Authentication successful",
             content: {
@@ -149,27 +133,7 @@ const auth: FastifyPluginAsync = async function (app, opts) {
       schema: {
         tags: ["Authentication"],
         summary: "Authenticate with Apple",
-        body: {
-          required: true,
-          content: {
-            "application/json": {
-              schema: {
-                type: "object",
-                properties: {
-                  identityToken: {
-                    type: "string",
-                    description: "Apple identity token",
-                  },
-                  authorizationCode: {
-                    type: "string",
-                    description: "Apple authorization code",
-                  },
-                },
-              },
-            },
-          },
-        },
-        responses: {
+        response: {
           200: {
             description: "Authentication successful",
             content: {

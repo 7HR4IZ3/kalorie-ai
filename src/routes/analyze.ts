@@ -24,13 +24,13 @@ const analyze: FastifyPluginAsync = async function (app, opts) {
             },
           },
         },
-        responses: {
+        response: {
           200: {
             description: "Image analyzed successfully",
             content: {
               "application/json": {
                 schema: {
-                  $ref: "FoodAnalysis#",
+                  $ref: "FoodAnalysisResult#",
                 },
               },
             },
