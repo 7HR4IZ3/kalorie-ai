@@ -23,6 +23,9 @@ const users: FastifyPluginAsync = async function (app: AppInstance, opts) {
               "application/json": {
                 schema: {
                   $ref: "UserDetails#",
+                  id: {
+                    type: "string",
+                  },
                 },
               },
             },
@@ -125,7 +128,7 @@ const users: FastifyPluginAsync = async function (app: AppInstance, opts) {
                   },
                 },
               },
-            }
+            },
           },
           404: {
             description: "User not found",
