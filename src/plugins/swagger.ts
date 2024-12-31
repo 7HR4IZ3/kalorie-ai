@@ -318,6 +318,23 @@ export default fp<SwaggerPluginOptions>(async function (fastify, opts) {
         url: "https://fastify.dev",
         description: "Fastify documentation",
       },
+      components: {
+        securitySchemes: {
+          authToken: {
+            type: "http",
+            scheme: "bearer",
+            bearerFormat: "JWT",
+          },
+
+          appAccessToken: {
+            type: "apiKey",
+            in: "header",
+            name:
+              process.env.CLIENT_AUTH_HEADER
+                || "X-KALORIEAI-CLIENT-AUTH-TOKEN"
+          }
+        },
+      },
     },
   });
 

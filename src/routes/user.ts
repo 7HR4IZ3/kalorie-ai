@@ -3,7 +3,7 @@ import type { FastifyPluginAsync } from "fastify";
 
 const users: FastifyPluginAsync = async function (app: AppInstance, opts) {
   app.get(
-    "/:userId",
+    "",
     {
       schema: {
         tags: ["User Management"],
@@ -50,7 +50,7 @@ const users: FastifyPluginAsync = async function (app: AppInstance, opts) {
   );
 
   app.put(
-    "/:userId",
+    "",
     {
       schema: {
         tags: ["User Management"],
@@ -103,7 +103,7 @@ const users: FastifyPluginAsync = async function (app: AppInstance, opts) {
   );
 
   app.delete(
-    "/:userId",
+    "",
     {
       schema: {
         tags: ["User Management"],
