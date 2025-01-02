@@ -1,3 +1,5 @@
+import "dotenv/config";
+
 import { test } from "node:test";
 import * as assert from "node:assert";
 import { build } from "../helper.js";
@@ -22,10 +24,7 @@ test("test unauthenticated user", async (context) => {
   const res = await app.inject({
     url: "/user",
     headers: {
-      [
-        process.env.CLIENT_AUTHORIZATION_HEADER ||
-          "X-KALORIEAI-CLIENT-AUTHORIZATION-TOKEN"
-      ]:
+      [process.env.CLIENT_AUTHORIZATION_HEADER as string]:
         process.env.CLIENT_AUTHORIZATION_TOKEN,
     },
   });
@@ -43,12 +42,9 @@ test("test authenticated user", async (context) => {
   const res = await app.inject({
     url: "/user",
     headers: {
-      [
-        process.env.CLIENT_AUTHORIZATION_HEADER ||
-          "X-KALORIEAI-CLIENT-AUTHORIZATION-TOKEN"
-      ]:
+      [process.env.CLIENT_AUTHORIZATION_HEADER as string]:
         process.env.CLIENT_AUTHORIZATION_TOKEN,
-      authorization: "Bearer demo-auth-token"
+      authorization: "Bearer demo-auth-token",
     },
   });
 

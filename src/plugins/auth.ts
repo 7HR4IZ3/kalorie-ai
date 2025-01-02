@@ -19,8 +19,10 @@ export default fp<AuthPluginOptions>(async (fastify, opts) => {
     if (routeConfig.requiresAuthorization ?? true) {
       const authorizationToken = request.headers[
         process.env.CLIENT_AUTHORIZATION_HEADER ||
-          "X-KALORIEAI-CLIENT-AUTHORIZATION-TOKEN"
+          "x-kalorieai-client-authorization-token"
       ] as string;
+
+      console.log(authorizationToken, request.headers);
 
       if (
         !authorizationToken ||
