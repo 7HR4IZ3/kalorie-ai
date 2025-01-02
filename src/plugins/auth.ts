@@ -22,8 +22,6 @@ export default fp<AuthPluginOptions>(async (fastify, opts) => {
           "x-kalorieai-client-authorization-token"
       ] as string;
 
-      console.log(authorizationToken, request.headers);
-
       if (
         !authorizationToken ||
         authorizationToken !== process.env.CLIENT_AUTHORIZATION_TOKEN
