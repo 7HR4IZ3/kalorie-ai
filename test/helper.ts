@@ -3,6 +3,7 @@ import helper from 'fastify-cli/helper.js'
 import * as test from 'node:test'
 import * as path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { FastifyInstance } from 'fastify';
 
 export type TestContext = {
   after: typeof test.after
@@ -10,7 +11,7 @@ export type TestContext = {
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
-const AppPath = path.join(__dirname, '..', 'src', 'app.ts')
+const AppPath = path.join(__dirname, '..', 'src', 'index.ts')
 
 // Fill in this config with all the configurations
 // needed for testing the application
@@ -19,7 +20,7 @@ async function config () {
 }
 
 // Automatically build and tear down our instance
-async function build (t: TestContext) {
+async function build (t: TestContext): Promise<FastifyInstance> {
   // you can set all the options supported by the fastify CLI command
   const argv = [AppPath]
 

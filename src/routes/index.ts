@@ -6,6 +6,7 @@ const index: FastifyPluginAsync = async function (app, opts) {
   app.get(
     "/",
     {
+      config: { anonymous: true },
       schema: {
         tags: ["Server Status"],
         summary: "Check if the server is alive",

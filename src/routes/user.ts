@@ -8,14 +8,6 @@ const users: FastifyPluginAsync = async function (app: AppInstance, opts) {
       schema: {
         tags: ["User Management"],
         summary: "Get user details",
-        params: {
-          type: "object",
-          properties: {
-            userId: {
-              type: "string",
-            },
-          },
-        },
         response: {
           200: {
             description: "User details retrieved successfully",
@@ -44,8 +36,22 @@ const users: FastifyPluginAsync = async function (app: AppInstance, opts) {
       },
     },
     async function (request, reply) {
-      // @ts-ignore
-      return "user page " + request.query.userId;
+      const { uid } = request.user as { uid: string };
+      if (!uid) {
+        return reply.status(401).send({
+          error: "auth/unauthorized",
+          message: "User not found",
+        });
+      }
+
+      if (uid === "user@kalorie.ai") {
+        return reply.status(200).send({ email: "user@kalorie.ai" });
+      }
+
+      return reply.status(401).send({
+        error: "auth/unauthorized",
+        message: "Invalid authorization token",
+      });
     }
   );
 
@@ -55,14 +61,6 @@ const users: FastifyPluginAsync = async function (app: AppInstance, opts) {
       schema: {
         tags: ["User Management"],
         summary: "Update user details",
-        params: {
-          type: "object",
-          properties: {
-            userId: {
-              type: "string",
-            },
-          },
-        },
         body: {
           required: true,
           content: {
@@ -108,14 +106,6 @@ const users: FastifyPluginAsync = async function (app: AppInstance, opts) {
       schema: {
         tags: ["User Management"],
         summary: "Delete user",
-        params: {
-          type: "object",
-          properties: {
-            userId: {
-              type: "string",
-            },
-          },
-        },
         response: {
           204: {
             description: "User deleted successfully",

@@ -1,6 +1,6 @@
 import z from "zod";
 import bcrypt from "bcrypt";
-import { auth as serverAuth, clientAuth, db } from "../lib/firebase.js";
+import { auth as serverAuth, db } from "../lib/firebase.js";
 
 import type { FastifyPluginAsync } from "fastify";
 
@@ -49,6 +49,7 @@ const auth: FastifyPluginAsync = async function (app, opts) {
   app.post(
     "/login",
     {
+      config: { requiresAuthentication: false },
       schema: {
         tags: ["Authentication"],
         summary: "Login user",
@@ -93,7 +94,7 @@ const auth: FastifyPluginAsync = async function (app, opts) {
         const user = await serverAuth.getUserByEmail(requestBody.email);
         if (!user) {
           return reply.status(401).send({
-            code: "auth/invalid-credentials",
+            error: "auth/invalid-credentials",
             message: "Invalid email address",
           });
         }
@@ -102,7 +103,7 @@ const auth: FastifyPluginAsync = async function (app, opts) {
         const customClaims = user.customClaims;
         if (!customClaims || !customClaims.passwordHash) {
           return reply.status(401).send({
-            code: "auth/invalid-credentials",
+            error: "auth/invalid-credentials",
             message: "No password set for this user",
           });
         }
@@ -115,7 +116,7 @@ const auth: FastifyPluginAsync = async function (app, opts) {
         );
         if (!passwordMatches) {
           return reply.status(401).send({
-            code: "auth/invalid-credentials",
+            error: "auth/invalid-credentials",
             message: "Invalid password",
           });
         }
@@ -125,7 +126,7 @@ const auth: FastifyPluginAsync = async function (app, opts) {
         // Check for existing token
         const userToken = await db.collection("tokens").doc(user.uid).get();
         if (userToken.exists && userToken.data()) {
-          const { token, createdAt } = userToken.data() as {
+          const { token } = userToken.data() as {
             [field: string]: any;
           };
 
@@ -169,7 +170,7 @@ const auth: FastifyPluginAsync = async function (app, opts) {
         // Else it's a generic error
 
         return reply.status(401).send({
-          code: error.code || "internal-server-error",
+          error: error.code || "internal-server-error",
           message: error.message || "Internal Server Error",
         });
       }
@@ -179,6 +180,7 @@ const auth: FastifyPluginAsync = async function (app, opts) {
   app.post(
     "/register",
     {
+      config: { requiresAuthentication: false },
       schema: {
         tags: ["Authentication"],
         summary: "Register a new user",
@@ -267,7 +269,7 @@ const auth: FastifyPluginAsync = async function (app, opts) {
         });
       } catch (error: any) {
         return reply.status(400).send({
-          code: error.code || "internal-server-error",
+          error: error.code || "internal-server-error",
           message: error.message || "Internal Server Error",
         });
       }
@@ -277,6 +279,7 @@ const auth: FastifyPluginAsync = async function (app, opts) {
   app.post(
     "/google",
     {
+      config: { requiresAuthentication: false },
       schema: {
         tags: ["Authentication"],
         summary: "Authenticate with Google",
@@ -321,6 +324,7 @@ const auth: FastifyPluginAsync = async function (app, opts) {
   app.post(
     "/apple",
     {
+      config: { requiresAuthentication: false },
       schema: {
         tags: ["Authentication"],
         summary: "Authenticate with Apple",
