@@ -1,8 +1,9 @@
-import firebase from "firebase/compat/app";
+import { getAuth } from "firebase-admin/auth";
+import { initializeApp } from "firebase-admin/app";
+import { initializeFirestore } from "firebase-admin/firestore";
 
-import "firebase/analytics";
-import "firebase/firestore";
-import "firebase/auth";
+import { initializeApp as initializeClientApp } from "firebase/app";
+import { initializeAuth as initializeClientAuth } from "firebase/auth";
 
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -20,7 +21,10 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-export const app = firebase.default.initializeApp(firebaseConfig);
-export const analytics = firebase.default.analytics(app);
-export const db = firebase.default.firestore(app);
-export const auth = firebase.default.auth(app);
+export const app = initializeApp(firebaseConfig);
+export const clientApp = initializeClientApp(firebaseConfig);
+
+export const auth = getAuth();
+export const clientAuth = initializeClientAuth(clientApp);
+
+export const db = initializeFirestore(app);

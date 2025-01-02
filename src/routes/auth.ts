@@ -1,5 +1,6 @@
 import z from "zod";
-import { auth as firebaseAuth, db } from "../lib/firebase.js";
+import bcrypt from "bcrypt";
+import { auth as serverAuth, clientAuth, db } from "../lib/firebase.js";
 
 import type { FastifyPluginAsync } from "fastify";
 
@@ -37,6 +38,14 @@ const UserRegistration = z.object({
 });
 
 const auth: FastifyPluginAsync = async function (app, opts) {
+  if (!process.env.AUTHENTICATION_JWT_SECRET) {
+    throw new Error("AUTHENTICATION_JWT_SECRET is not set");
+  }
+
+  app.register(import("@fastify/jwt"), {
+    secret: process.env.AUTHENTICATION_JWT_SECRET as string,
+  });
+
   app.post(
     "/login",
     {
@@ -77,8 +86,93 @@ const auth: FastifyPluginAsync = async function (app, opts) {
         },
       },
     },
-    async function (request) {
-      return "login page";
+    async function (request, reply) {
+      const requestBody = UserLogin.parse(request.body as object);
+
+      try {
+        const user = await serverAuth.getUserByEmail(requestBody.email);
+        if (!user) {
+          return reply.status(401).send({
+            code: "auth/invalid-credentials",
+            message: "Invalid email address",
+          });
+        }
+
+        // Retrieve stored password hash from user custom claims
+        const customClaims = user.customClaims;
+        if (!customClaims || !customClaims.passwordHash) {
+          return reply.status(401).send({
+            code: "auth/invalid-credentials",
+            message: "No password set for this user",
+          });
+        }
+
+        // Compare the incoming password with the hashed password
+        const hashedPassword = customClaims.passwordHash;
+        const passwordMatches = await bcrypt.compare(
+          requestBody.password,
+          hashedPassword
+        );
+        if (!passwordMatches) {
+          return reply.status(401).send({
+            code: "auth/invalid-credentials",
+            message: "Invalid password",
+          });
+        }
+
+        // TODO: Refresh token implementation and support
+
+        // Check for existing token
+        const userToken = await db.collection("tokens").doc(user.uid).get();
+        if (userToken.exists && userToken.data()) {
+          const { token, createdAt } = userToken.data() as {
+            [field: string]: any;
+          };
+
+          return reply.status(200).send({
+            accessToken: token,
+            refreshToken: userToken.data()?.refreshToken,
+            expiresIn: userToken.data()?.expiresIn,
+          });
+        } else {
+          // Create and store new user token
+          const token = app.jwt.sign({
+            uid: user.uid,
+            alg: "RS256",
+            iss: "support@kalorie.ai",
+            sub: requestBody.email,
+            aud: [
+              "https://identitytoolkit.googleapis.com/google.identity.identitytoolkit.v1.IdentityToolkit",
+            ],
+            azp: "YOUR_CLIENT_ID",
+            exp:
+              new Date().getTime() +
+
+              // A full day from now
+              1000 * 60 * 60 * 24 *
+
+              Number.parseInt(
+                process.env.AUTHENTICATION_JWT_EXPIRY_PERIOD || "90"
+              ),
+            iat: new Date().getTime()
+          });
+          await db.collection("tokens").doc(user.uid).set({
+            token: token,
+            createdAt: user.metadata.creationTime,
+          });
+
+          // Return user details
+          return reply.status(200).send({ accessToken: token });
+        }
+      } catch (error: any) {
+        // Errors from firebase typically hane a `code` property
+        // Else it's a generic error
+
+        return reply.status(401).send({
+          code: error.code || "internal-server-error",
+          message: error.message || "Internal Server Error",
+        });
+      }
     }
   );
 
@@ -127,13 +221,21 @@ const auth: FastifyPluginAsync = async function (app, opts) {
       const requestBody = UserRegistration.parse(request.body as object);
 
       try {
-        const userRef = await firebaseAuth.createUserWithEmailAndPassword(
-          requestBody.email, requestBody.password
+        const user = await serverAuth.createUser({
+          email: requestBody.email,
+          password: requestBody.password,
+        });
+
+        const hashedPassword = await bcrypt.hash(
+          requestBody.password,
+          user.passwordSalt as string
         );
+        serverAuth.setCustomUserClaims(user.uid, {
+          passwordHash: hashedPassword,
+        });
 
         // Create new user profile
-        const userProfile = db.collection("profiles").doc(requestBody.email);
-        userProfile.set({
+        await db.collection("profiles").doc(user.uid).set({
           name: requestBody.name,
           email: requestBody.email,
           gender: requestBody.gender,
@@ -150,27 +252,25 @@ const auth: FastifyPluginAsync = async function (app, opts) {
           accomplishment_goal: requestBody.accomplishment_goal,
         });
 
-        // Create new user token
-        const token = await userRef.user?.getIdToken();
+        // Create and store new user token
+        const token = app.jwt.sign({
+          payload: { email: requestBody.email },
+        });
+        await db.collection("tokens").doc(user.uid).set({
+          token: token,
+          createdAt: user.metadata.creationTime,
+        });
 
         // Return user details
         return reply.status(200).send({
           accessToken: token,
-          refreshToken: token,
-          user: {
-            email: requestBody.email,
-            name: requestBody.name,
-            createdAt: userRef.user?.metadata.creationTime,
-            updatedAt: userRef.user?.metadata.lastSignInTime,
-          },
         });
       } catch (error: any) {
         return reply.status(400).send({
-          code: error.code,
-          message: error.message
+          code: error.code || "internal-server-error",
+          message: error.message || "Internal Server Error",
         });
       }
-
     }
   );
 

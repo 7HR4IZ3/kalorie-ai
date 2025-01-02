@@ -23,7 +23,12 @@ export default fp<AuthPluginOptions>(async (fastify, opts) => {
       return reply.unauthorized("No authentication token");
     }
 
-    // const user = await auth.ver(authenticationToken);
+    try {
+      // TODO: User authentication and token verification
+      // const user = await auth.verifyIdToken(authenticationToken);
+    } catch {
+      return reply.unauthorized("Invalid authentication token");
+    }
   });
 });
 
