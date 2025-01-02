@@ -1,5 +1,5 @@
 import fp from "fastify-plugin";
-// import { auth } from "../lib/firebase.js";
+import { auth } from "../lib/firebase.js";
 
 export interface AuthPluginOptions {
   // Specify Auth plugin options here
@@ -44,16 +44,36 @@ export default fp<AuthPluginOptions>(async (fastify, opts) => {
       }
 
       try {
-        // TODO: User authentication and token verification
-        if (authenticationToken !== "demo-auth-token") {
-          return reply.status(401).send({
-            error: "unauthorized",
-            message: "Invalid authentication token",
-          });
+        // TODO: Remove this!!
+        if (
+          process.env.ENVIRONMENT === "development" &&
+          authenticationToken === "demo-auth-token"
+        ) {
+          request.user = { uid: "user@kalorie.ai" };
+          return;
         }
 
-        // const user = await auth.verifyIdToken(authenticationToken);
-        request.user = { uid: "user@kalorie.ai" };
+        const decodedToken = fastify.jwt.verify<{ uid: string; email: string }>(
+          authenticationToken,
+          {
+            allowedIss: process.env.AUTHENTICATION_JWT_ISSUER,
+            allowedAud: process.env.AUTHENTICATION_JWT_AUDIENCE,
+            key: process.env.AUTHENTICATION_JWT_SECRET as string,
+          }
+        );
+
+        if (decodedToken) {
+          const user = await auth.getUser(decodedToken.uid);
+          if (!user) {
+            return reply.status(401).send({
+              error: "unauthorized",
+              message: "Invalid authentication token",
+            });
+          }
+
+          request.user = user;
+          return;
+        }
       } catch {
         return reply.status(401).send({
           error: "unauthorized",

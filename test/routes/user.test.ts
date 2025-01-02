@@ -2,7 +2,7 @@ import "dotenv/config";
 
 import { test } from "node:test";
 import * as assert from "node:assert";
-import { build } from "../helper.js";
+import { build, TEST_VALUES, TEST_USER_DETAILS, TEST_CREDENTIALS } from "../helper.js";
 
 test("test unauthorized user", async (context) => {
   const app = await build(context);
@@ -44,10 +44,16 @@ test("test authenticated user", async (context) => {
     headers: {
       [process.env.CLIENT_AUTHORIZATION_HEADER as string]:
         process.env.CLIENT_AUTHORIZATION_TOKEN,
-      authorization: "Bearer demo-auth-token",
+      authorization: `Bearer ${TEST_VALUES.accessToken}`,
     },
   });
 
   assert.equal(res.statusCode, 200);
-  assert.deepStrictEqual(JSON.parse(res.payload), { email: "user@kalorie.ai" });
+  assert.deepStrictEqual(
+    JSON.parse(res.payload),
+    {
+      email: TEST_CREDENTIALS.email,
+      ...TEST_USER_DETAILS
+    }
+  );
 });

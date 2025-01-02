@@ -1,5 +1,33 @@
+import { db } from "../lib/firebase.js";
+import { UserUpdateSchema, stripUndefinedValues } from "../schema/index.js";
+
 import type { AppInstance } from "../types/index.ts";
-import type { FastifyPluginAsync } from "fastify";
+import type { FastifyPluginAsync, FastifyRequest, FastifyReply } from "fastify";
+
+const getUserProfile = async (request: FastifyRequest, reply: FastifyReply) => {
+  const user = request.user as { uid: string };
+
+  if (!user?.uid) {
+    reply.status(401).send({
+      error: "auth/invalid-credentials",
+      message: "User not found",
+    });
+    return null;
+  }
+
+  const profile = db.collection("profiles").doc(user.uid);
+  const userProfile = await profile.get();
+
+  if (!userProfile?.exists) {
+    reply.status(404).send({
+      error: "auth/no-user-profile",
+      message: "User profile not found",
+    });
+    return null;
+  }
+
+  return { profile, userProfile };
+};
 
 const users: FastifyPluginAsync = async function (app: AppInstance, opts) {
   app.get(
@@ -36,22 +64,10 @@ const users: FastifyPluginAsync = async function (app: AppInstance, opts) {
       },
     },
     async function (request, reply) {
-      const { uid } = request.user as { uid: string };
-      if (!uid) {
-        return reply.status(401).send({
-          error: "auth/unauthorized",
-          message: "User not found",
-        });
-      }
+      const entry = await getUserProfile(request, reply);
+      if (!entry) { return; }
 
-      if (uid === "user@kalorie.ai") {
-        return reply.status(200).send({ email: "user@kalorie.ai" });
-      }
-
-      return reply.status(401).send({
-        error: "auth/unauthorized",
-        message: "Invalid authorization token",
-      });
+      reply.status(200).send(entry.userProfile.data());
     }
   );
 
@@ -96,7 +112,15 @@ const users: FastifyPluginAsync = async function (app: AppInstance, opts) {
       },
     },
     async function (request, reply) {
-      return "update user page";
+      const entry = await getUserProfile(request, reply);
+      if (!entry) { return; }
+
+      const requestBody = UserUpdateSchema.parse(request.body);
+
+      await entry.profile.set({
+        ...entry.userProfile.data(),
+        ...stripUndefinedValues(requestBody)
+      });
     }
   );
 

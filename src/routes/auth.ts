@@ -1,41 +1,9 @@
-import z from "zod";
 import bcrypt from "bcrypt";
+import { UserLogin, UserRegistration } from "../schema/index.js";
 import { auth as serverAuth, db } from "../lib/firebase.js";
 
+import type { Algorithm } from "fast-jwt";
 import type { FastifyPluginAsync } from "fastify";
-
-const UserLogin = z.object({
-  email: z.string().email(),
-  password: z.string(),
-});
-
-const UserRegistration = z.object({
-  name: z.string(),
-  email: z.string().email(),
-  password: z.string(),
-  gender: z.enum(["male", "female", "other"]),
-  workout_periods: z.enum(["0-2", "3-5", "6+"]),
-  tried_other_tracking_apps: z.enum(["yes", "no"]),
-  height: z.number(),
-  weight: z.number(),
-  age: z.string().datetime(),
-  goal: z.enum(["lose_weight", "gain_weight", "mantain"]),
-  desited_weight: z.number(),
-  goal_speed: z.number().min(0.1).max(1.5),
-  current_limitation: z.array(
-    z.enum([
-      "consistency",
-      "eating_habit",
-      "support",
-      "busy",
-      "meal_inspiraton",
-    ])
-  ),
-  following_a_diet: z.enum(["classic", "pescetarian", "vegan", "vegitarian"]),
-  accomplishment_goal: z.array(
-    z.enum(["eat_healthier", "boost_mood", "stay_motivated", "feel_better"])
-  ),
-});
 
 const auth: FastifyPluginAsync = async function (app, opts) {
   if (!process.env.AUTHENTICATION_JWT_SECRET) {
@@ -136,31 +104,35 @@ const auth: FastifyPluginAsync = async function (app, opts) {
             expiresIn: userToken.data()?.expiresIn,
           });
         } else {
-          // Create and store new user token
-          const token = app.jwt.sign({
-            uid: user.uid,
-            alg: "RS256",
-            iss: "support@kalorie.ai",
-            sub: requestBody.email,
-            aud: [
-              "https://identitytoolkit.googleapis.com/google.identity.identitytoolkit.v1.IdentityToolkit",
-            ],
-            azp: "YOUR_CLIENT_ID",
-            exp:
-              new Date().getTime() +
+          // Create new user token
+          const token = app.jwt.sign(
+            {
+              uid: user.uid,
+              email: user.email,
+            },
+            {
+              sub: requestBody.email,
+              algorithm: process.env.AUTHENTICATION_JWT_ALGORITHM as Algorithm,
+              iss: process.env.AUTHENTICATION_JWT_ISSUER,
+              key: process.env.AUTHENTICATION_JWT_SECRET,
+              aud: process.env.AUTHENTICATION_JWT_AUDIENCE,
+              clockTimestamp: new Date().getTime(),
+              expiresIn:
+                // A full day from now
+                1000 *
+                60 *
+                60 *
+                24 *
+                Number.parseInt(
+                  process.env.AUTHENTICATION_JWT_EXPIRY_PERIOD || "90"
+                ),
+            }
+          );
 
-              // A full day from now
-              1000 * 60 * 60 * 24 *
-
-              Number.parseInt(
-                process.env.AUTHENTICATION_JWT_EXPIRY_PERIOD || "90"
-              ),
-            iat: new Date().getTime()
-          });
-          await db.collection("tokens").doc(user.uid).set({
-            token: token,
-            createdAt: user.metadata.creationTime,
-          });
+          // TODO: Store tokens to be used for invalidating refreshTokens
+          // await db.collection("tokens").doc(user.uid).set({
+          //   token: token, createdAt: user.metadata.creationTime,
+          // });
 
           // Return user details
           return reply.status(200).send({ accessToken: token });
@@ -255,13 +227,34 @@ const auth: FastifyPluginAsync = async function (app, opts) {
         });
 
         // Create and store new user token
-        const token = app.jwt.sign({
-          payload: { email: requestBody.email },
-        });
-        await db.collection("tokens").doc(user.uid).set({
-          token: token,
-          createdAt: user.metadata.creationTime,
-        });
+        const token = app.jwt.sign(
+          {
+            uid: user.uid,
+            email: user.email,
+          },
+          {
+            sub: requestBody.email,
+            algorithm: process.env.AUTHENTICATION_JWT_ALGORITHM as Algorithm,
+            iss: process.env.AUTHENTICATION_JWT_ISSUER,
+            key: process.env.AUTHENTICATION_JWT_SECRET,
+            aud: process.env.AUTHENTICATION_JWT_AUDIENCE,
+            clockTimestamp: new Date().getTime(),
+            expiresIn:
+              // A full day from now
+              1000 *
+              60 *
+              60 *
+              24 *
+              Number.parseInt(
+                process.env.AUTHENTICATION_JWT_EXPIRY_PERIOD || "90"
+              ),
+          }
+        );
+
+        // await db.collection("tokens").doc(user.uid).set({
+        //   token: token,
+        //   createdAt: user.metadata.creationTime,
+        // });
 
         // Return user details
         return reply.status(200).send({
