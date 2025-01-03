@@ -70,7 +70,6 @@ build
 .env
 .editorconfig
 
-
 # package lock
 package-lock.json
 bun.lockb

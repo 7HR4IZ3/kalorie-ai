@@ -20,7 +20,7 @@ test("test unregistered user login", async (context) => {
   assert.equal(res.statusCode, 401);
 });
 
-test("test user registrration", async (context) => {
+test("test user registration", async (context) => {
   const app = await build(context);
 
   const res = await app.inject({

@@ -6,14 +6,6 @@ import type { Algorithm } from "fast-jwt";
 import type { FastifyPluginAsync } from "fastify";
 
 const auth: FastifyPluginAsync = async function (app, opts) {
-  if (!process.env.AUTHENTICATION_JWT_SECRET) {
-    throw new Error("AUTHENTICATION_JWT_SECRET is not set");
-  }
-
-  app.register(import("@fastify/jwt"), {
-    secret: process.env.AUTHENTICATION_JWT_SECRET as string,
-  });
-
   app.post(
     "/login",
     {
@@ -141,6 +133,8 @@ const auth: FastifyPluginAsync = async function (app, opts) {
         // Errors from firebase typically hane a `code` property
         // Else it's a generic error
 
+        console.log(error);
+
         return reply.status(401).send({
           error: error.code || "internal-server-error",
           message: error.message || "Internal Server Error",
@@ -200,12 +194,14 @@ const auth: FastifyPluginAsync = async function (app, opts) {
           password: requestBody.password,
         });
 
+        const passwordSalt = user.passwordSalt || (await bcrypt.genSalt(10));
         const hashedPassword = await bcrypt.hash(
           requestBody.password,
-          user.passwordSalt as string
+          passwordSalt
         );
         serverAuth.setCustomUserClaims(user.uid, {
           passwordHash: hashedPassword,
+          passwordSalt: passwordSalt,
         });
 
         // Create new user profile
@@ -224,6 +220,8 @@ const auth: FastifyPluginAsync = async function (app, opts) {
           current_limitation: requestBody.current_limitation,
           following_a_diet: requestBody.following_a_diet,
           accomplishment_goal: requestBody.accomplishment_goal,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
         });
 
         // Create and store new user token
@@ -251,16 +249,20 @@ const auth: FastifyPluginAsync = async function (app, opts) {
           }
         );
 
+        console.log(token);
+
         // await db.collection("tokens").doc(user.uid).set({
         //   token: token,
         //   createdAt: user.metadata.creationTime,
         // });
 
         // Return user details
-        return reply.status(200).send({
+        return reply.send({
           accessToken: token,
         });
       } catch (error: any) {
+        console.log(error);
+
         return reply.status(400).send({
           error: error.code || "internal-server-error",
           message: error.message || "Internal Server Error",

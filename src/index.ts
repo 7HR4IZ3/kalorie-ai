@@ -1,6 +1,6 @@
 import "dotenv/config";
 
-import cors from '@fastify/cors'
+import cors from "@fastify/cors";
 import { AutoloadPluginOptions } from "@fastify/autoload";
 import { FastifyPluginAsync } from "fastify";
 
@@ -12,11 +12,19 @@ export type AppOptions = {
 const options: AppOptions = {};
 
 const setup: FastifyPluginAsync<AppOptions> = async (app, options) => {
+  if (!process.env.AUTHENTICATION_JWT_SECRET) {
+    throw new Error("AUTHENTICATION_JWT_SECRET is not set");
+  }
+
   app.register(cors, {
     origin: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    methods: ["GET", "POST", "PUT", "DELETE"],
     preflightContinue: true,
     credentials: true,
+  });
+
+  app.register(import("@fastify/jwt"), {
+    secret: process.env.AUTHENTICATION_JWT_SECRET as string,
   });
 
   // Plugins

@@ -44,42 +44,33 @@ export default fp<AuthPluginOptions>(async (fastify, opts) => {
       }
 
       try {
-        // TODO: Remove this!!
-        if (
-          process.env.ENVIRONMENT === "development" &&
-          authenticationToken === "demo-auth-token"
-        ) {
-          request.user = { uid: "user@kalorie.ai" };
-          return;
-        }
-
         const decodedToken = fastify.jwt.verify<{ uid: string; email: string }>(
           authenticationToken,
           {
+            key: process.env.AUTHENTICATION_JWT_SECRET,
             allowedIss: process.env.AUTHENTICATION_JWT_ISSUER,
             allowedAud: process.env.AUTHENTICATION_JWT_AUDIENCE,
-            key: process.env.AUTHENTICATION_JWT_SECRET as string,
           }
         );
 
-        if (decodedToken) {
+        if (decodedToken?.uid) {
           const user = await auth.getUser(decodedToken.uid);
-          if (!user) {
-            return reply.status(401).send({
-              error: "unauthorized",
-              message: "Invalid authentication token",
-            });
+          if (user) {
+            return (request.user = user);
           }
-
-          request.user = user;
-          return;
         }
-      } catch {
+      } catch (error) {
+        console.log(error);
         return reply.status(401).send({
           error: "unauthorized",
           message: "Invalid authentication token",
         });
       }
+
+      return reply.status(401).send({
+        error: "unauthorized",
+        message: "Invalid authentication token",
+      });
     }
   });
 });

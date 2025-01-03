@@ -24,6 +24,13 @@ export default fp<SwaggerPluginOptions>(async function (fastify, opts) {
       "accomplishment_goal",
     ],
     properties: {
+      email: {
+        type: "string",
+        format: "email",
+      },
+      password: {
+        type: "string",
+      },
       gender: {
         type: "string",
         enum: ["male", "female", "other"],
@@ -48,8 +55,7 @@ export default fp<SwaggerPluginOptions>(async function (fastify, opts) {
         description: "User's weight",
       },
       age: {
-        type: "string",
-        format: "date",
+        type: "number",
         description: "User's age",
       },
       goal: {
@@ -168,8 +174,7 @@ export default fp<SwaggerPluginOptions>(async function (fastify, opts) {
         description: "User's weight",
       },
       age: {
-        type: "string",
-        format: "date",
+        type: "number",
         description: "User's age",
       },
       goal: {
@@ -330,9 +335,8 @@ export default fp<SwaggerPluginOptions>(async function (fastify, opts) {
             type: "apiKey",
             in: "header",
             name:
-              process.env.CLIENT_AUTH_HEADER
-                || "X-KALORIEAI-CLIENT-AUTH-TOKEN"
-          }
+              process.env.CLIENT_AUTH_HEADER || "X-KALORIEAI-CLIENT-AUTH-TOKEN",
+          },
         },
       },
     },

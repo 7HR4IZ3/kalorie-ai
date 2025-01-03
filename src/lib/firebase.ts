@@ -1,3 +1,4 @@
+import admin from "firebase-admin";
 import { getAuth } from "firebase-admin/auth";
 import { initializeApp } from "firebase-admin/app";
 import { initializeFirestore } from "firebase-admin/firestore";
@@ -21,7 +22,14 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-export const app = initializeApp(firebaseConfig);
+export const app = initializeApp({
+  ...firebaseConfig,
+  credential: admin.credential.cert({
+    projectId: process.env.GOOGLE_FIREBASE_PROJECT_ID,
+    privateKey: process.env.GOOGLE_CLOUD_PRIVATE_KEY,
+    clientEmail: process.env.GOOGLE_CLOUD_CLIENT_EMAIL,
+  }),
+});
 export const clientApp = initializeClientApp(firebaseConfig);
 
 export const auth = getAuth();

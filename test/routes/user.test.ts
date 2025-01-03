@@ -57,3 +57,74 @@ test("test authenticated user", async (context) => {
     }
   );
 });
+
+test("test user update", async (context) => {
+  const app = await build(context);
+
+  const res = await app.inject({
+    url: "/user",
+    headers: {
+      [process.env.CLIENT_AUTHORIZATION_HEADER as string]:
+        process.env.CLIENT_AUTHORIZATION_TOKEN,
+      authorization: `Bearer ${TEST_VALUES.accessToken}`,
+    },
+    method: "PATCH",
+    body: {
+      name: "Updated User"
+    },
+  });
+
+  assert.equal(res.statusCode, 200);
+  assert.deepStrictEqual(
+    JSON.parse(res.payload),
+    {
+      email: TEST_CREDENTIALS.email,
+      ...TEST_USER_DETAILS,
+      name: "Updated User",
+    }
+  );
+});
+
+
+test("test updated authenticated user", async (context) => {
+  const app = await build(context);
+
+  const res = await app.inject({
+    url: "/user",
+    headers: {
+      [process.env.CLIENT_AUTHORIZATION_HEADER as string]:
+        process.env.CLIENT_AUTHORIZATION_TOKEN,
+      authorization: `Bearer ${TEST_VALUES.accessToken}`,
+    },
+  });
+
+  assert.equal(res.statusCode, 200);
+  assert.deepStrictEqual(
+    JSON.parse(res.payload),
+    {
+      email: TEST_CREDENTIALS.email,
+      ...TEST_USER_DETAILS,
+      name: "Updated User",
+    }
+  );
+});
+
+
+test("test user delete", async (context) => {
+  const app = await build(context);
+
+  const res = await app.inject({
+    url: "/user",
+    headers: {
+      [process.env.CLIENT_AUTHORIZATION_HEADER as string]:
+        process.env.CLIENT_AUTHORIZATION_TOKEN,
+      authorization: `Bearer ${TEST_VALUES.accessToken}`,
+    },
+    method: "DELETE",
+  });
+
+  assert.equal(res.statusCode, 204);
+  assert.deepStrictEqual(JSON.parse(res.payload), {
+    success: true,
+  });
+});
